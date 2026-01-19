@@ -1,0 +1,32 @@
+<svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="600" height="400" fill="#f5f5f5"/>
+  
+  <!-- Grid lines to simulate map -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e0e0e0" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="600" height="400" fill="url(#grid)"/>
+  
+  <!-- Water body -->
+  <ellipse cx="150" cy="200" rx="80" ry="60" fill="#a8d5e2" opacity="0.6"/>
+  
+  <!-- Roads -->
+  <line x1="0" y1="150" x2="600" y2="150" stroke="#ffd700" stroke-width="8" opacity="0.7"/>
+  <line x1="0" y1="250" x2="600" y2="250" stroke="#ffd700" stroke-width="6" opacity="0.7"/>
+  <line x1="300" y1="0" x2="300" y2="400" stroke="#ffd700" stroke-width="6" opacity="0.7"/>
+  
+  <!-- Green areas (parks) -->
+  <ellipse cx="450" cy="100" rx="60" ry="40" fill="#90ee90" opacity="0.5"/>
+  <ellipse cx="100" cy="300" rx="50" ry="50" fill="#90ee90" opacity="0.5"/>
+  
+  <!-- Location marker (red pin) -->
+  <circle cx="300" cy="200" r="12" fill="#ff0000"/>
+  <path d="M 300 200 L 300 230 L 295 225 L 305 225 Z" fill="#ff0000"/>
+  <circle cx="300" cy="200" r="6" fill="#ffffff"/>
+  
+  <!-- Text -->
+  <text x="300" y="380" font-family="Arial, sans-serif" font-size="16" fill="#666" text-anchor="middle">Google Maps Placeholder</text>
+</svg>

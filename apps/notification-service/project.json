@@ -1,0 +1,65 @@
+{
+  "name": "notification-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/notification-service",
+  "projectType": "application",
+  "tags": ["type:service", "lang:python", "scope:backend"],
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "python manage.py runserver 8004",
+        "cwd": "apps/notification-service"
+      }
+    },
+    "consume": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "python manage.py consume_events",
+        "cwd": "apps/notification-service"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "python -m pytest -v --tb=short",
+        "cwd": "apps/notification-service"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ruff check .",
+        "cwd": "apps/notification-service"
+      }
+    },
+    "lint-fix": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ruff check . --fix",
+        "cwd": "apps/notification-service"
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ruff format .",
+        "cwd": "apps/notification-service"
+      }
+    },
+    "migrate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "python manage.py migrate",
+        "cwd": "apps/notification-service"
+      }
+    },
+    "makemigrations": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "python manage.py makemigrations",
+        "cwd": "apps/notification-service"
+      }
+    }
+  }
+}

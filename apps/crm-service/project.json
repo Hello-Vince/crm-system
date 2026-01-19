@@ -1,0 +1,58 @@
+{
+  "name": "crm-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/crm-service",
+  "projectType": "application",
+  "tags": ["type:service", "lang:python", "scope:backend"],
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "python manage.py runserver 8002",
+        "cwd": "apps/crm-service"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "python -m pytest -v --tb=short",
+        "cwd": "apps/crm-service"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ruff check .",
+        "cwd": "apps/crm-service"
+      }
+    },
+    "lint-fix": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ruff check . --fix",
+        "cwd": "apps/crm-service"
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ruff format .",
+        "cwd": "apps/crm-service"
+      }
+    },
+    "migrate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "python manage.py migrate",
+        "cwd": "apps/crm-service"
+      }
+    },
+    "makemigrations": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "python manage.py makemigrations",
+        "cwd": "apps/crm-service"
+      }
+    }
+  }
+}

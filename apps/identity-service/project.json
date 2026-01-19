@@ -1,0 +1,65 @@
+{
+  "name": "identity-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/identity-service",
+  "projectType": "application",
+  "tags": ["type:service", "lang:python", "scope:backend"],
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "python manage.py runserver 8001",
+        "cwd": "apps/identity-service"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "python -m pytest -v --tb=short",
+        "cwd": "apps/identity-service"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ruff check .",
+        "cwd": "apps/identity-service"
+      }
+    },
+    "lint-fix": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ruff check . --fix",
+        "cwd": "apps/identity-service"
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ruff format .",
+        "cwd": "apps/identity-service"
+      }
+    },
+    "migrate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "python manage.py migrate",
+        "cwd": "apps/identity-service"
+      }
+    },
+    "makemigrations": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "python manage.py makemigrations",
+        "cwd": "apps/identity-service"
+      }
+    },
+    "shell": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "python manage.py shell",
+        "cwd": "apps/identity-service"
+      }
+    }
+  }
+}

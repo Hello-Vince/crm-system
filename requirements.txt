@@ -1,0 +1,56 @@
+# =============================================================================
+# CRM System - Consolidated Python Dependencies
+# =============================================================================
+# Install with: pip install -r requirements.txt
+# For local development: source .venv/bin/activate && pip install -r requirements.txt
+# =============================================================================
+
+# Django 5.2 LTS - Current stable (NOT 6.0)
+Django>=5.2,<5.3
+
+# GraphQL
+graphene-django>=3.2.0
+graphene-federation>=3.3.0
+
+# Database
+psycopg[binary]>=3.2.0
+
+# Kafka
+confluent-kafka>=2.6.0
+
+# Server
+gunicorn>=23.0.0
+
+# HTTP Client (for geocode-worker)
+httpx>=0.28.0
+
+# Utilities
+python-dotenv>=1.0.0
+
+# Authentication
+PyJWT>=2.9.0
+
+# CORS
+django-cors-headers>=4.6.0
+
+# REST Framework (for internal APIs)
+djangorestframework>=3.15.0
+
+# =============================================================================
+# Development & Testing
+# =============================================================================
+
+# Linting & Formatting (replaces Black, isort, Flake8)
+ruff>=0.8.0
+
+# Testing
+pytest>=8.0.0
+pytest-django>=4.8.0
+pytest-mock>=3.14.0
+pytest-cov>=4.1.0
+
+# Type checking (optional)
+mypy>=1.8.0
+
+# Pre-commit hooks (optional)
+pre-commit>=3.6.0

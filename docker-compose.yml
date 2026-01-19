@@ -1,0 +1,274 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:18.1-alpine
+    container_name: crm-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-crm_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+      POSTGRES_MULTIPLE_DATABASES: identity_db,crm_db,audit_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-crm_admin}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crm-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.8.0
+    container_name: crm-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - crm-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.8.0
+    container_name: crm-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - crm-network
+
+  identity-service:
+    build:
+      context: .
+      dockerfile: ./apps/identity-service/Dockerfile
+    container_name: crm-identity-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-crm_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+      IDENTITY_DB_NAME: identity_db
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-secret-key}
+      DEBUG: ${DEBUG:-True}
+    networks:
+      - crm-network
+
+  crm-service:
+    build:
+      context: .
+      dockerfile: ./apps/crm-service/Dockerfile
+    container_name: crm-crm-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8002:8002"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-crm_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+      CRM_DB_NAME: crm_db
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-secret-key}
+      DEBUG: ${DEBUG:-True}
+    networks:
+      - crm-network
+
+  geocode-worker:
+    build:
+      context: .
+      dockerfile: ./apps/geocode-worker/Dockerfile
+    container_name: crm-geocode-worker
+    depends_on:
+      kafka:
+        condition: service_healthy
+      crm-service:
+        condition: service_started
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      CRM_SERVICE_INTERNAL_URL: http://crm-service:8002
+    networks:
+      - crm-network
+
+  audit-service:
+    build:
+      context: .
+      dockerfile: ./apps/audit-service/Dockerfile
+    container_name: crm-audit-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8003:8003"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-crm_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+      AUDIT_DB_NAME: audit_db
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-secret-key}
+      DEBUG: ${DEBUG:-True}
+    command: [ "sh", "-c", "python manage.py migrate && gunicorn --bind 0.0.0.0:8003 audit_project.wsgi:application" ]
+    networks:
+      - crm-network
+
+  audit-consumer:
+    build:
+      context: .
+      dockerfile: ./apps/audit-service/Dockerfile
+    container_name: crm-audit-consumer
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-crm_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+      AUDIT_DB_NAME: audit_db
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key}
+      DEBUG: ${DEBUG:-True}
+    command: [ "python", "manage.py", "consume_events" ]
+    networks:
+      - crm-network
+
+  notification-db:
+    image: postgres:16
+    container_name: crm-notification-db
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: ${POSTGRES_USER:-crm_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+    ports:
+      - "5434:5432"
+    volumes:
+      - notification_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-crm_admin}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crm-network
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: ./apps/notification-service/Dockerfile
+    container_name: crm-notification-service
+    depends_on:
+      notification-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8004:8004"
+    environment:
+      POSTGRES_HOST: notification-db
+      POSTGRES_USER: ${POSTGRES_USER:-crm_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+      NOTIFICATION_DB_NAME: notification_db
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-secret-key}
+      DEBUG: ${DEBUG:-True}
+    command: [ "sh", "-c", "python manage.py migrate && gunicorn --bind 0.0.0.0:8004 notification_project.wsgi:application" ]
+    networks:
+      - crm-network
+
+  notification-consumer:
+    build:
+      context: .
+      dockerfile: ./apps/notification-service/Dockerfile
+    container_name: crm-notification-consumer
+    depends_on:
+      notification-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: notification-db
+      POSTGRES_USER: ${POSTGRES_USER:-crm_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+      NOTIFICATION_DB_NAME: notification_db
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-secret-key}
+      DEBUG: ${DEBUG:-True}
+    command: [ "python", "manage.py", "consume_events" ]
+    networks:
+      - crm-network
+
+  gateway:
+    build:
+      context: ./apps/gateway
+      dockerfile: Dockerfile
+    container_name: crm-gateway
+    depends_on:
+      - identity-service
+      - crm-service
+      - audit-service
+    ports:
+      - "4000:4000"
+    environment:
+      IDENTITY_SERVICE_URL: http://identity-service:8001/graphql
+      CRM_SERVICE_URL: http://crm-service:8002/graphql
+      AUDIT_SERVICE_URL: http://audit-service:8003/graphql
+      NOTIFICATION_SERVICE_URL: http://notification-service:8004/graphql
+      NODE_ENV: production
+    networks:
+      - crm-network
+
+  crm-frontend:
+    build:
+      context: ./apps/crm-frontend
+      dockerfile: Dockerfile
+    container_name: crm-frontend
+    depends_on:
+      - gateway
+    ports:
+      - "3000:80"
+    environment:
+      VITE_GRAPHQL_URL: http://localhost:4000/graphql
+    networks:
+      - crm-network
+
+networks:
+  crm-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  notification_data:

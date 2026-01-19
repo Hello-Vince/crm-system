@@ -1,0 +1,44 @@
+{
+  "name": "geocode-worker",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/geocode-worker",
+  "projectType": "application",
+  "tags": ["type:worker", "lang:python", "scope:backend"],
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "python -m geocode_worker",
+        "cwd": "apps/geocode-worker"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "python -m pytest -v --tb=short",
+        "cwd": "apps/geocode-worker"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ruff check .",
+        "cwd": "apps/geocode-worker"
+      }
+    },
+    "lint-fix": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ruff check . --fix",
+        "cwd": "apps/geocode-worker"
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ruff format .",
+        "cwd": "apps/geocode-worker"
+      }
+    }
+  }
+}

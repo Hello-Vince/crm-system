@@ -1,0 +1,133 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crm-system"
+version = "0.1.0"
+description = "Event-Driven CRM System with GraphQL Federation"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8.0",
+    "pytest>=8.0.0",
+    "pytest-django>=4.8.0",
+    "pytest-mock>=3.14.0",
+    "pytest-cov>=4.1.0",
+    "mypy>=1.8.0",
+    "pre-commit>=3.6.0",
+]
+
+# ==============================================================================
+# RUFF - Linting & Formatting (replaces Black, isort, Flake8)
+# ==============================================================================
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+# Files to exclude
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "*.egg-info",
+    "dist",
+    "build",
+    "node_modules",
+    "migrations",
+]
+
+[tool.ruff.lint]
+# Enable rules: Error, Pyflakes, Isort, Bugbear, C4 (comprehensions), UP (pyupgrade)
+select = ["E", "F", "I", "B", "C4", "UP"]
+ignore = [
+    "E501",  # Line too long (handled by formatter)
+    "B008",  # Do not perform function calls in argument defaults
+    "C901",  # Function is too complex
+]
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "shared_python",
+    "identity",
+    "crm_project",
+    "audit_project",
+    "notification_project",
+    "geocode_worker",
+]
+force-single-line = false
+lines-after-imports = 2
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+# ==============================================================================
+# PYTEST - Testing Configuration
+# ==============================================================================
+[tool.pytest.ini_options]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+]
+markers = [
+    "unit: Unit tests (fast, no external dependencies)",
+    "integration: Integration tests (may require services)",
+    "slow: Slow running tests",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+# ==============================================================================
+# MYPY - Type Checking (optional)
+# ==============================================================================
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "confluent_kafka.*",
+    "graphene_federation.*",
+    "graphene_django.*",
+]
+ignore_missing_imports = true
+
+# ==============================================================================
+# COVERAGE - Test Coverage (optional)
+# ==============================================================================
+[tool.coverage.run]
+branch = true
+source = ["apps", "libs"]
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/management/commands/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]

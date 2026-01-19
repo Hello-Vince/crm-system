@@ -1,0 +1,37 @@
+{
+  "name": "shared-python",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared-python",
+  "projectType": "library",
+  "tags": ["type:library", "lang:python", "scope:shared"],
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "python -m pytest -v --tb=short",
+        "cwd": "libs/shared-python"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ruff check .",
+        "cwd": "libs/shared-python"
+      }
+    },
+    "lint-fix": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ruff check . --fix",
+        "cwd": "libs/shared-python"
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ruff format .",
+        "cwd": "libs/shared-python"
+      }
+    }
+  }
+}

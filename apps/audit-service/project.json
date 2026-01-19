@@ -1,0 +1,69 @@
+{
+    "name": "audit-service",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "apps/audit-service",
+    "projectType": "application",
+    "tags": [
+        "type:service",
+        "lang:python",
+        "scope:backend"
+    ],
+    "targets": {
+        "serve": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "python manage.py runserver 8003",
+                "cwd": "apps/audit-service"
+            }
+        },
+        "consume": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "python manage.py consume_events",
+                "cwd": "apps/audit-service"
+            }
+        },
+        "test": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "python -m pytest -v --tb=short",
+                "cwd": "apps/audit-service"
+            }
+        },
+        "lint": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "ruff check .",
+                "cwd": "apps/audit-service"
+            }
+        },
+        "lint-fix": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "ruff check . --fix",
+                "cwd": "apps/audit-service"
+            }
+        },
+        "format": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "ruff format .",
+                "cwd": "apps/audit-service"
+            }
+        },
+        "migrate": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "python manage.py migrate",
+                "cwd": "apps/audit-service"
+            }
+        },
+        "makemigrations": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "python manage.py makemigrations",
+                "cwd": "apps/audit-service"
+            }
+        }
+    }
+}

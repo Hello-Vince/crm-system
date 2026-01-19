@@ -1,0 +1,17 @@
+[project]
+name = "geocode-worker"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "confluent-kafka>=2.6.0",
+    "python-dotenv>=1.0.0",
+    "httpx>=0.28.0",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+select = ["E", "F", "I", "B"]
+
+[tool.ruff.isort]
+known-first-party = ["geocode_worker"]
