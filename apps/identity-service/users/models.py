@@ -99,7 +99,8 @@ class User(AbstractBaseUser, PermissionsMixin):
             return []  # No company means no access (except SYSTEM_ADMIN)
 
         if self.role == self.UserRole.COMPANY_ADMIN:
-            return self.company.get_descendant_ids()
+            # Company admin sees own company + all descendants
+            return self.company.get_visibility_scope()
 
         # Regular USER
         return [self.company.id]

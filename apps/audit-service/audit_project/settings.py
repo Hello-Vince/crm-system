@@ -58,16 +58,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'audit_project.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('AUDIT_DB_NAME', 'audit_db'),
-        'USER': os.getenv('POSTGRES_USER', 'crm_admin'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'secret'),
-        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
-        'PORT': os.getenv('POSTGRES_PORT', '5432'),
+# Use SQLite for testing, PostgreSQL for production
+if os.getenv('TESTING', 'False') == 'True':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('AUDIT_DB_NAME', 'audit_db'),
+            'USER': os.getenv('POSTGRES_USER', 'crm_admin'),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'secret'),
+            'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
+            'PORT': os.getenv('POSTGRES_PORT', '5432'),
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

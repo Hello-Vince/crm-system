@@ -1,6 +1,5 @@
 import uuid
 
-from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 
@@ -11,10 +10,10 @@ class Notification(models.Model):
     event_type = models.CharField(max_length=100)  # e.g., "customer_created"
     title = models.CharField(max_length=255)
     message = models.TextField()
-    visible_to_company_ids = ArrayField(models.UUIDField())
+    visible_to_company_ids = models.JSONField(default=list)
     related_entity_id = models.UUIDField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    read_by_user_ids = ArrayField(models.UUIDField(), default=list)
+    read_by_user_ids = models.JSONField(default=list)
 
     class Meta:
         ordering = ['-created_at']

@@ -1,12 +1,11 @@
 import uuid
 
-from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 
 class Customer(models.Model):
     """
-    Customer record with JSONB visibility list.
+    Customer record with visibility list.
     Multiple companies can have access to the same customer record.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -31,9 +30,8 @@ class Customer(models.Model):
     )
     geocoded_at = models.DateTimeField(null=True, blank=True)
     
-    # Array of company UUIDs that can see this record
-    visible_to_company_ids = ArrayField(
-        models.UUIDField(),
+    # JSON list of company UUIDs that can see this record (works on both PostgreSQL and SQLite)
+    visible_to_company_ids = models.JSONField(
         default=list,
         blank=True,
         help_text="List of company UUIDs that have visibility to this customer"

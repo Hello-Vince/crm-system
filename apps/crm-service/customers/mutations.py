@@ -52,9 +52,10 @@ class CreateCustomer(graphene.Mutation):
         company_id = user.company_id
         
         # Set visibility list (default: creator's company + any specified)
-        visibility_ids = [company_id]
+        # Convert all UUIDs to strings for JSON storage
+        visibility_ids = [str(company_id)]
         if input.visibility_company_ids:
-            visibility_ids.extend(input.visibility_company_ids)
+            visibility_ids.extend([str(cid) for cid in input.visibility_company_ids])
         
         # Create customer
         customer = Customer.objects.create(
