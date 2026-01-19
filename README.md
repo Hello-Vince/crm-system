@@ -168,6 +168,27 @@ npm run migrate:crm       # CRM service only
 
 5. **Shared Library**: Common utilities (Kafka client, JWT auth) are in `libs/shared-python` to avoid code duplication.
 
+### Features Implemented
+
+| Feature | Status | Details |
+|---------|--------|---------|
+| **GraphQL Federation** | ✅ | Apollo Gateway stitches schemas from 4 Django services (Identity, CRM, Audit, Notification) |
+| **Multi-Tenant Architecture** | ✅ | Company hierarchy with parent/child relationships, data isolation via `visible_to_company_ids` |
+| **JWT Authentication & Authorization** | ✅ | Gateway validates tokens, services enforce role-based access (SYSTEM_ADMIN, COMPANY_ADMIN, USER) |
+| **Event-Driven with Kafka** | ✅ | `crm.customer.created` events consumed by 3 workers (geocode, audit, notification) |
+| **Retry with Exponential Backoff** | ✅ | `KafkaConsumer` retries 5 times with backoff (2s → 4s → 8s → 16s → 32s, max 60s) |
+| **Dead Letter Queue (DLQ)** | ✅ | Failed messages sent to `{topic}.dlq.{consumer_group}` after retries exhausted |
+| **Error Classification** | ✅ | `RetryableError` for transient failures, `PermanentError` for immediate DLQ |
+| **Structured Logging** | ✅ | JSON logs with `topic`, `partition`, `offset`, `event_type`, `duration_ms` |
+| **Database per Service** | ✅ | 4 PostgreSQL databases: `identity_db`, `crm_db`, `audit_db`, `notification_db` |
+| **External API Simulation** | ✅ | Geocode worker simulates async API calls with `httpx.AsyncClient` |
+| **In-App Notifications** | ✅ | Real-time notification bell with unread count, mark-as-read functionality |
+| **Audit Logging** | ✅ | All `crm.customer.created` events logged with full payload |
+| **Docker Containerization** | ✅ | All 10 services defined in `docker-compose.yml` with health checks |
+| **Nx Monorepo** | ✅ | Coordinated builds, tests, and dependency management via Nx workspace |
+| **Unit & Integration Tests** | ✅ | pytest for Python services, Vitest for gateway, schema tests for GraphQL |
+| **Environment Configuration** | ✅ | `.env.sample` provided, secrets loaded from environment variables |
+
 ---
 
 ## Company Hierarchy & Access Control
@@ -522,4 +543,4 @@ docker-compose logs -f geocode-worker
 
 ## License
 
-This project was created as a technical challenge submission.
+MIT License - feel free to use this as a reference for building your own microservices architecture.
