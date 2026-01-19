@@ -6,10 +6,10 @@ A multi-tenant CRM (Customer Relationship Management) system built with microser
 
 - [Quick Start](#quick-start)
 - [Service URLs](#service-urls)
-- [Rebuild & Clean Commands](#rebuild--clean-commands)
+- [Test Accounts](#test-accounts)
+- [Additional Commands](#additional-commands)
 - [Architecture Overview](#architecture-overview)
 - [Company Hierarchy & Access Control](#company-hierarchy--access-control)
-- [Test Accounts](#test-accounts)
 - [Asynchronous Workflows](#asynchronous-workflows)
 - [Testing Strategy](#testing-strategy)
 - [Tech Stack](#tech-stack)
@@ -21,34 +21,41 @@ A multi-tenant CRM (Customer Relationship Management) system built with microser
 ### Prerequisites
 
 - Docker & Docker Compose
-- Node.js >= 24.0.0
-- Python >= 3.14 (for local development)
+- Node.js >= 18.0.0
 
-### Step-by-Step Setup
-
-```bash
-# 1. Install dependencies
-npm install
-
-# 2. Start all Docker containers (databases, Kafka, all services)
-npm run docker:up
-
-# 3. Initialize databases (run migrations + seed data)
-npm run docker:init
-
-# 4. Verify all services are running
-npm run docker:ps
-```
-
-The system is now running! Open http://localhost:3000 to access the frontend.
-
-### Alternative: Full Setup (Single Command)
+### First Time Setup (One Command)
 
 ```bash
 npm run setup:full
 ```
 
-This runs `npm install`, rebuilds all containers, and initializes databases.
+This single command does everything:
+1. Installs dependencies
+2. Builds and starts all Docker containers
+3. Runs database migrations
+4. Seeds test data
+5. Waits for services and starts the gateway
+
+**That's it!** Open http://localhost:3000 to access the frontend.
+
+### Full Restart
+
+If you need to completely restart from scratch:
+
+```bash
+npm run docker:down
+npm run setup:full
+```
+
+### Quick Commands Reference
+
+```bash
+npm run setup:full      # First time setup / full restart
+npm run docker:down     # Stop all services
+npm run docker:ps       # Check service status
+npm run docker:logs     # View logs
+npm run test            # Run all tests
+```
 
 ---
 
@@ -68,38 +75,37 @@ This runs `npm install`, rebuilds all containers, and initializes databases.
 
 ---
 
-## Rebuild & Clean Commands
+## Test Accounts
+
+| Role | Email | Password | Company |
+|------|-------|----------|---------|
+| 🔐 **System Admin** | `admin@crm.com` | `admin123` | All Companies |
+| 🏢 **Acme Admin** | `admin.acme@crm.com` | `acme123` | Acme Corporation |
+| 🏢 **GlobalTech Admin** | `admin.global@crm.com` | `global123` | GlobalTech Industries |
+| 👤 **Regular User** | `user.west@crm.com` | `west123` | Acme West Division |
+
+---
+
+## Additional Commands
+
+### Docker Management
 
 ```bash
-# Stop all services
-npm run docker:down
-
-# Rebuild and restart all services
-npm run docker:rebuild
-
-# Clean rebuild (removes volumes, clears cache, rebuilds from scratch)
-npm run docker:clean-rebuild
-
-# View logs
-npm run docker:logs
-
-# Check service status
-npm run docker:ps
+npm run docker:down          # Stop all services
+npm run docker:rebuild       # Rebuild and restart (keeps data)
+npm run docker:clean-rebuild # Full clean rebuild (removes all data)
+npm run docker:logs          # View logs (Ctrl+C to exit)
+npm run docker:ps            # Check service status
 ```
 
-### Individual Service Commands
+### Testing
 
 ```bash
-# Run tests
-npm run test              # All services (excluding frontend)
+npm run test              # All services
 npm run test:crm          # CRM service only
 npm run test:identity     # Identity service only
 npm run test:shared       # Shared Python library
-
-# Run migrations
-npm run migrate           # All services
-npm run migrate:identity  # Identity service only
-npm run migrate:crm       # CRM service only
+npm run test:gateway      # Gateway only
 ```
 
 ---
@@ -243,17 +249,6 @@ The CRM supports a multi-tenant model with parent/child company relationships.
 2. **Login as West Division User** → You can see the customer (parent's data is visible to children)
 3. **Login as GlobalTech Admin** → You CANNOT see the customer (different company tree)
 4. **Login as System Admin** → You can see ALL customers
-
----
-
-## Test Accounts
-
-| Role | Email | Password | Company | Access |
-|------|-------|----------|---------|--------|
-| 🔐 **System Admin** | `admin@crm.com` | `admin123` | All Companies | Full access to everything |
-| 🏢 **Acme Admin** | `admin.acme@crm.com` | `acme123` | Acme Corporation | Acme + all child divisions |
-| 🏢 **GlobalTech Admin** | `admin.global@crm.com` | `global123` | GlobalTech Industries | GlobalTech only (isolated) |
-| 👤 **Regular User** | `user.west@crm.com` | `west123` | Acme West Division | West Division + parent Acme |
 
 ---
 
