@@ -15,10 +15,18 @@ const DEMO_CREDENTIALS = [
   {
     email: 'admin.acme@crm.com',
     password: 'acme123',
-    displayName: 'Company Admin',
+    displayName: 'Acme Admin',
     role: '🏢 Company Admin',
     roleColor: '#3498db',
     company: 'Acme Corporation',
+  },
+  {
+    email: 'admin.global@crm.com',
+    password: 'global123',
+    displayName: 'GlobalTech Admin',
+    role: '🏢 Company Admin',
+    roleColor: '#9b59b6',
+    company: 'GlobalTech Industries',
   },
   {
     email: 'user.west@crm.com',

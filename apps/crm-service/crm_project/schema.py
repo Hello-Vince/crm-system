@@ -27,50 +27,56 @@ class Query(graphene.ObjectType):
         """
         Return customers filtered by user's access rights.
         - SYSTEM_ADMIN: sees all customers
-        - COMPANY_ADMIN: sees own company + all descendant companies
-        - USER: sees only own company
+        - Others: see customers visible to any company in their hierarchy
         """
         user = info.context.user
-        
+
         if not user.is_authenticated:
             return Customer.objects.none()
-        
+
         # System admins see everything
-        if user.role == 'SYSTEM_ADMIN':
+        if user.role == "SYSTEM_ADMIN":
             return Customer.objects.all()
-        
+
         # No company = no access
-        if not user.company_id:
+        if not user.visible_company_ids:
             return Customer.objects.none()
-        
+
         # Filter by visible_to_company_ids
-        # User's company_id must be in the customer's visibility list
-        return Customer.objects.filter(visible_to_company_ids__contains=[user.company_id])
+        # Customer is visible if ANY of user's visible companies is in the list
+        from django.db.models import Q
+
+        query = Q()
+        for company_id in user.visible_company_ids:
+            query |= Q(visible_to_company_ids__contains=[company_id])
+
+        return Customer.objects.filter(query).distinct()
 
     def resolve_customer(self, info, id):
         """
         Return a single customer if user has access to it.
         """
         user = info.context.user
-        
+
         if not user.is_authenticated:
             return None
-        
+
         try:
             customer = Customer.objects.get(id=id)
-            
+
             # System admins see everything
-            if user.role == 'SYSTEM_ADMIN':
+            if user.role == "SYSTEM_ADMIN":
                 return customer
-            
+
             # No company = no access
-            if not user.company_id:
+            if not user.visible_company_ids:
                 return None
-            
-            # Check if user's company is in the visibility list
-            if user.company_id in customer.visible_to_company_ids:
-                return customer
-            
+
+            # Check if ANY of user's visible companies is in the visibility list
+            for company_id in user.visible_company_ids:
+                if company_id in customer.visible_to_company_ids:
+                    return customer
+
             return None
         except Customer.DoesNotExist:
             return None

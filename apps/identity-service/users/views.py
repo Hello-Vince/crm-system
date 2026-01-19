@@ -19,12 +19,21 @@ from users.models import User
 def create_jwt_token(user: User) -> str:
     """
     Create a JWT token for the given user.
+    Includes visible_company_ids for hierarchy-aware access control.
     """
+    # Get all company IDs user can access (own + ancestors + descendants)
+    visible_company_ids = []
+    if user.company:
+        visible_company_ids = [
+            str(cid) for cid in user.company.get_full_hierarchy_ids()
+        ]
+
     payload = {
         'user_id': str(user.id),
         'email': user.email,
         'role': user.role,
         'company_id': str(user.company.id) if user.company else None,
+        'visible_company_ids': visible_company_ids,
         'exp': datetime.now(timezone.utc) + timedelta(hours=settings.JWT_EXPIRATION_HOURS),
         'iat': datetime.now(timezone.utc),
     }

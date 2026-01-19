@@ -1,6 +1,7 @@
 """
 Tests for Customer GraphQL queries and access control.
 """
+
 import uuid
 from unittest.mock import Mock
 
@@ -48,7 +49,10 @@ class TestCustomerQueryAccessControl(TestCase):
             state="SS",
             postal_code="33333",
             created_by_company_id=self.parent_company_id,
-            visible_to_company_ids=[str(self.parent_company_id), str(self.child_company_id)],
+            visible_to_company_ids=[
+                str(self.parent_company_id),
+                str(self.child_company_id),
+            ],
         )
 
     def _create_mock_request(self, user):

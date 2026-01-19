@@ -20,53 +20,50 @@ class Query(graphene.ObjectType):
         """
         Return audit logs filtered by user's access rights.
         - SYSTEM_ADMIN: sees all logs
-        - COMPANY_ADMIN: sees own company + all descendant companies
-        - USER: sees only own company
+        - Others: see logs from any company in their hierarchy
         """
         # info.context is the HttpRequest object
         request = info.context
-        user = getattr(request, 'user', None)
-        
+        user = getattr(request, "user", None)
+
         if not user or not user.is_authenticated:
             return AuditLog.objects.none()
-        
+
         # System admins see everything
-        if user.role == 'SYSTEM_ADMIN':
+        if user.role == "SYSTEM_ADMIN":
             return AuditLog.objects.all()[:limit]
-        
-        # No company = no access
-        if not user.company_id:
+
+        # No visible companies = no access
+        if not user.visible_company_ids:
             return AuditLog.objects.none()
-        
-        # Filter by company_id
-        # Note: For proper hierarchy support, we would need to query Identity Service
-        # for descendant company IDs. For now, filtering by exact company match.
-        return AuditLog.objects.filter(company_id=user.company_id)[:limit]
+
+        # Filter by any of user's visible company IDs
+        return AuditLog.objects.filter(company_id__in=user.visible_company_ids)[:limit]
 
     def resolve_audit_log(self, info, id):
         """
         Return a single audit log if user has access to it.
         """
         user = info.context.user
-        
+
         if not user.is_authenticated:
             return None
-        
+
         try:
             log = AuditLog.objects.get(id=id)
-            
+
             # System admins see everything
-            if user.role == 'SYSTEM_ADMIN':
+            if user.role == "SYSTEM_ADMIN":
                 return log
-            
-            # No company = no access
-            if not user.company_id:
+
+            # No visible companies = no access
+            if not user.visible_company_ids:
                 return None
-            
-            # Check if user's company matches the log's company
-            if user.company_id == log.company_id:
+
+            # Check if log's company is in user's visible companies
+            if str(log.company_id) in user.visible_company_ids:
                 return log
-            
+
             return None
         except AuditLog.DoesNotExist:
             return None

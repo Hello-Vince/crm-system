@@ -80,6 +80,7 @@ class TestCreateCustomerMutation(TestCase):
         user = Mock()
         user.is_authenticated = True
         user.company_id = self.company_id
+        user.visible_company_ids = [str(self.company_id)]
 
         info = Mock()
         info.context = Mock()
@@ -124,6 +125,7 @@ class TestCreateCustomerMutation(TestCase):
         user = Mock()
         user.is_authenticated = True
         user.company_id = self.company_id
+        user.visible_company_ids = [str(self.company_id)]
 
         info = Mock()
         info.context = Mock()
@@ -156,6 +158,7 @@ class TestCreateCustomerMutation(TestCase):
         user = Mock()
         user.is_authenticated = True
         user.company_id = self.company_id
+        user.visible_company_ids = [str(self.company_id)]
 
         info = Mock()
         info.context = Mock()

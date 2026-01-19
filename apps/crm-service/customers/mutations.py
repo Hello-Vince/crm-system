@@ -41,19 +41,22 @@ class CreateCustomer(graphene.Mutation):
     def mutate(cls, root, info, input: CreateCustomerInput):
         # Get authenticated user from JWT middleware
         user = info.context.user
-        
+
         if not user.is_authenticated:
-            raise Exception('Authentication required to create customers')
-        
+            raise Exception("Authentication required to create customers")
+
         if not user.company_id:
-            raise Exception('User must belong to a company to create customers')
-        
+            raise Exception("User must belong to a company to create customers")
+
         # Use authenticated user's company ID
         company_id = user.company_id
-        
-        # Set visibility list (default: creator's company + any specified)
-        # Convert all UUIDs to strings for JSON storage
-        visibility_ids = [str(company_id)]
+
+        # Set visibility list:
+        # - Creator's company
+        # - All ancestor companies (so parent companies can see child's customers)
+        # - Any additional specified companies
+        # Note: visible_company_ids from JWT includes ancestors, so we use that
+        visibility_ids = list(user.visible_company_ids) if user.visible_company_ids else [str(company_id)]
         if input.visibility_company_ids:
             visibility_ids.extend([str(cid) for cid in input.visibility_company_ids])
         

@@ -43,6 +43,24 @@ class Company(models.Model):
             queue.extend(grandchildren)
         return descendant_ids
 
+    def get_ancestor_ids(self) -> list[uuid.UUID]:
+        """Returns all parent company IDs recursively (walking up the tree)."""
+        ancestor_ids: list[uuid.UUID] = []
+        current = self.parent
+        while current:
+            ancestor_ids.append(current.id)
+            current = current.parent
+        return ancestor_ids
+
     def get_visibility_scope(self) -> list[uuid.UUID]:
         """Returns company ID + all descendant IDs for visibility filtering."""
         return [self.id] + self.get_descendant_ids()
+
+    def get_full_hierarchy_ids(self) -> list[uuid.UUID]:
+        """
+        Returns ALL company IDs the user can access:
+        - Own company
+        - All ancestors (parent, grandparent, etc.)
+        - All descendants (children, grandchildren, etc.)
+        """
+        return [self.id] + self.get_ancestor_ids() + self.get_descendant_ids()

@@ -7,7 +7,6 @@
     "build": "nx run-many --target=build --all",
     "build:frontend": "nx run crm-frontend:build",
     "build:gateway": "nx run gateway:build",
-    
     "serve": "nx run-many --target=serve --parallel=10",
     "serve:frontend": "nx run crm-frontend:serve",
     "serve:gateway": "nx run gateway:serve",
@@ -16,8 +15,7 @@
     "serve:audit": "nx run audit-service:serve",
     "serve:notification": "nx run notification-service:serve",
     "serve:geocode": "nx run geocode-worker:serve",
-    
-    "test": "nx run-many --target=test --all",
+    "test": "nx run-many --target=test --all --exclude=crm-frontend",
     "test:frontend": "nx run crm-frontend:test",
     "test:gateway": "nx run gateway:test",
     "test:identity": "nx run identity-service:test",
@@ -26,17 +24,14 @@
     "test:notification": "nx run notification-service:test",
     "test:geocode": "nx run geocode-worker:test",
     "test:shared": "nx run shared-python:test",
-    
     "lint": "nx run-many --target=lint --all",
     "lint:fix": "nx run-many --target=lint-fix --all",
     "format": "nx run-many --target=format --all",
-    
     "migrate": "nx run-many --target=migrate --all --parallel=1",
     "migrate:identity": "nx run identity-service:migrate",
     "migrate:crm": "nx run crm-service:migrate",
     "migrate:audit": "nx run audit-service:migrate",
     "migrate:notification": "nx run notification-service:migrate",
-    
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
@@ -44,10 +39,8 @@
     "docker:rebuild": "docker-compose down -v --remove-orphans && docker-compose build --no-cache && docker-compose up -d",
     "docker:clean-rebuild": "docker-compose down -v --remove-orphans && docker builder prune -f && docker-compose build --no-cache && docker-compose up -d",
     "docker:init": "bash scripts/init-db.sh",
-    
     "setup": "npm install && pip install -r requirements.txt",
     "setup:full": "npm run setup && npm run docker:rebuild && npm run docker:init",
-    
     "clean": "nx reset && rm -rf node_modules dist coverage .nx",
     "graph": "nx graph",
     "affected": "nx affected",

@@ -38,18 +38,24 @@ class Query(graphene.ObjectType):
         if not user or not user.is_authenticated:
             return []
 
-        # SYSTEM_ADMIN can see all notifications, others see only their company's notifications
-        if user.role == 'SYSTEM_ADMIN':
+        # SYSTEM_ADMIN can see all notifications
+        if user.role == "SYSTEM_ADMIN":
             qs = Notification.objects.all()
+        elif not user.visible_company_ids:
+            return []
         else:
-            qs = Notification.objects.filter(
-                visible_to_company_ids__contains=[user.company_id]
-            )
+            # Filter by any of the user's visible companies
+            from django.db.models import Q
+
+            query = Q()
+            for company_id in user.visible_company_ids:
+                query |= Q(visible_to_company_ids__contains=[company_id])
+            qs = Notification.objects.filter(query).distinct()
 
         if unread_only:
             qs = qs.exclude(read_by_user_ids__contains=[user.id])
 
-        return qs.order_by('-created_at')[:limit]
+        return qs.order_by("-created_at")[:limit]
 
     def resolve_unread_notification_count(self, info):
         """Get count of unread notifications for current user."""
@@ -58,13 +64,19 @@ class Query(graphene.ObjectType):
         if not user or not user.is_authenticated:
             return 0
 
-        # SYSTEM_ADMIN can see all notifications, others see only their company's notifications
-        if user.role == 'SYSTEM_ADMIN':
+        # SYSTEM_ADMIN can see all notifications
+        if user.role == "SYSTEM_ADMIN":
             qs = Notification.objects.all()
+        elif not user.visible_company_ids:
+            return 0
         else:
-            qs = Notification.objects.filter(
-                visible_to_company_ids__contains=[user.company_id]
-            )
+            # Filter by any of the user's visible companies
+            from django.db.models import Q
+
+            query = Q()
+            for company_id in user.visible_company_ids:
+                query |= Q(visible_to_company_ids__contains=[company_id])
+            qs = Notification.objects.filter(query).distinct()
 
         return qs.exclude(read_by_user_ids__contains=[user.id]).count()
 
@@ -82,18 +94,24 @@ class MarkNotificationRead(graphene.Mutation):
         user = info.context.user
 
         if not user or not user.is_authenticated:
-            raise Exception('Authentication required')
+            raise Exception("Authentication required")
 
         try:
-            if user.role == 'SYSTEM_ADMIN':
+            if user.role == "SYSTEM_ADMIN":
                 notification = Notification.objects.get(id=notification_id)
+            elif not user.visible_company_ids:
+                raise Exception("No company access")
             else:
-                notification = Notification.objects.get(
-                    id=notification_id,
-                    visible_to_company_ids__contains=[user.company_id]
-                )
+                # Check if notification is visible to any of user's companies
+                from django.db.models import Q
+
+                query = Q(id=notification_id)
+                company_query = Q()
+                for company_id in user.visible_company_ids:
+                    company_query |= Q(visible_to_company_ids__contains=[company_id])
+                notification = Notification.objects.get(query & company_query)
         except Notification.DoesNotExist:
-            raise Exception('Notification not found or not accessible')
+            raise Exception("Notification not found or not accessible")
 
         notification.mark_read_by(user.id)
 
