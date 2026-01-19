@@ -353,7 +353,7 @@ class MockGeocodingClient:
 
 ### Queue Design Features
 
-The Kafka implementation includes production-ready features:
+The Kafka implementation includes robust error handling features:
 
 | Feature | Implementation |
 |---------|----------------|
