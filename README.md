@@ -21,41 +21,64 @@ A multi-tenant CRM (Customer Relationship Management) system built with microser
 ### Prerequisites
 
 - Docker & Docker Compose
-- Node.js >= 18.0.0
+- Node.js >= 18.0.0 (optional - see Docker-only setup below)
 
-### First Time Setup (One Command)
+---
 
+### Option A: With npm (Recommended)
+
+**First Time Setup:**
 ```bash
 npm run setup:full
 ```
 
-This single command does everything:
-1. Installs dependencies
-2. Builds and starts all Docker containers
-3. Runs database migrations
-4. Seeds test data
-5. Waits for services and starts the gateway
-
-**That's it!** Open http://localhost:3000 to access the frontend.
-
-### Full Restart
-
-If you need to completely restart from scratch:
-
+**Full Restart:**
 ```bash
 npm run docker:down
 npm run setup:full
 ```
 
+---
+
+### Option B: Docker Only (No npm Required)
+
+**First Time Setup:**
+```bash
+# 1. Build and start all containers
+docker-compose up -d --build
+
+# 2. Wait ~30 seconds for services to start, then run migrations and seed data
+docker exec crm-identity-service python manage.py migrate
+docker exec crm-crm-service python manage.py migrate
+docker exec crm-identity-service python manage.py seed_data
+
+# 3. Restart gateway (after services are ready)
+docker-compose restart gateway
+```
+
+**Full Restart:**
+```bash
+# Stop and remove everything
+docker-compose down -v
+
+# Then run the "First Time Setup" steps above
+docker-compose up -d --build
+# ... (wait 30s, run migrations, seed, restart gateway)
+```
+
+---
+
+**That's it!** Open http://localhost:3000 to access the frontend.
+
 ### Quick Commands Reference
 
-```bash
-npm run setup:full      # First time setup / full restart
-npm run docker:down     # Stop all services
-npm run docker:ps       # Check service status
-npm run docker:logs     # View logs
-npm run test            # Run all tests
-```
+| Task | npm | Docker |
+|------|-----|--------|
+| Start everything | `npm run setup:full` | `docker-compose up -d --build` |
+| Stop all | `npm run docker:down` | `docker-compose down` |
+| View logs | `npm run docker:logs` | `docker-compose logs -f` |
+| Check status | `npm run docker:ps` | `docker-compose ps` |
+| Run tests | `npm run test` | See Testing section |
 
 ---
 
