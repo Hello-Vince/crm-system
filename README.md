@@ -317,18 +317,30 @@ crm.customer.created
         └──► push-consumer (FCM/APNS)       ← Future
 ```
 
-### Geocode Worker - Simulating External API Integration
+### Geocode Worker - Mock External API Integration
 
-The Geocode Worker demonstrates handling **external API calls** in an event-driven architecture:
+> ⚠️ **Note**: The Geocode Worker uses a **mock implementation** that returns fake coordinates. No actual external API calls are made. This is intentional to avoid requiring API keys for demo purposes.
+
+The Geocode Worker demonstrates handling **external API calls** in an event-driven architecture. It shows the patterns you would use when integrating with real geocoding services like Google Maps or Nearmap.
+
+**What the Mock Does:**
+- Returns random coordinates near a fixed location (simulating API response)
+- Adds artificial delay (200ms) to simulate network latency
+- Demonstrates async/await patterns for HTTP calls
 
 ```python
-# Simulates calling an external geocoding API (Google Maps, Mapbox, etc.)
-# In production, this would make actual API calls:
-#
+# Current mock implementation (no API key required):
+class MockGeocodingClient:
+    async def geocode(self, address: str) -> tuple[float, float]:
+        await asyncio.sleep(0.2)  # Simulate API latency
+        return (40.7128 + random.uniform(-0.1, 0.1), 
+                -74.0060 + random.uniform(-0.1, 0.1))
+
+# In production, replace with real API calls:
 # async with httpx.AsyncClient() as client:
 #     response = await client.get(
-#         f"https://maps.googleapis.com/maps/api/geocode/json",
-#         params={"address": customer_address, "key": API_KEY}
+#         "https://maps.googleapis.com/maps/api/geocode/json",
+#         params={"address": address, "key": GOOGLE_MAPS_API_KEY}
 #     )
 ```
 
