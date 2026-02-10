@@ -1,6 +1,7 @@
 import { ApolloGateway, IntrospectAndCompose, RemoteGraphQLDataSource } from '@apollo/gateway';
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
+import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import jwt from 'jsonwebtoken';
 
 interface UserContext {
@@ -68,6 +69,9 @@ const gateway = new ApolloGateway({
 
 const server = new ApolloServer({
   gateway,
+  // Enable schema exploration and local sandbox-style docs
+  introspection: true,
+  plugins: [ApolloServerPluginLandingPageLocalDefault()],
 });
 
 const { url } = await startStandaloneServer(server, {
